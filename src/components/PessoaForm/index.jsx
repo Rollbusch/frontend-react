@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import Container from "../Container";
 import { useEffect, useState } from "react";
+import Loading from "../Loading";
 
 export default function PessoaForm({ id }) {
   const [nome, setNome] = useState("");
@@ -8,7 +9,7 @@ export default function PessoaForm({ id }) {
   const [cpf, setCpf] = useState("");
   const [dataNascimento, setDataNascimento] = useState();
   const [dataAdmissao, setDataAdmissao] = useState();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -39,69 +40,59 @@ export default function PessoaForm({ id }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    if (id == "new") {
-      const create = handleCreate(
-        JSON.stringify({
-          nome,
-          rg,
-          cpf,
-          data_admissao: dataAdmissao,
-          data_nascimento: dataNascimento,
-        })
-      );
-      if (create) {
-        navigate("/");
-      } else {
-        alert("Um erro inesperado aconteceu.");
-      }
-      navigate("/");
-    } else {
-      const update = handleUpdate(
-        id,
-        JSON.stringify({
-          nome,
-          rg,
-          cpf,
-          data_admissao: dataAdmissao,
-          data_nascimento: dataNascimento,
-        })
-      );
-      if (update) {
-        navigate("/");
-      } else {
-        alert("Um erro inesperado aconteceu.");
-      }
+    const request = handleData(
+      id == "new" ? "POST" : "PUT",
+      id == "new" ? "pessoas" : `pessoas/${id}`,
+      JSON.stringify({
+        nome,
+        rg,
+        cpf,
+        data_admissao: dataAdmissao,
+        data_nascimento: dataNascimento,
+      })
+    );
+    if (request) {
+      return navigate("/");
     }
+    return alert("Um erro inesperado aconteceu.");
   };
 
-  const handleUpdate = async (id, body) => {
-    const data = await fetch(`${process.env.REACT_APP_API_URL}/pessoas/${id}`, {
-      method: "PUT",
+  const handleData = async (method, endpoint, body) => {
+    const data = await fetch(`${process.env.REACT_APP_API_URL}/${endpoint}`, {
+      method,
       body,
       headers: {
         "Content-Type": "application/json",
       },
     });
     if (!data.ok) return false;
-    return true
-  };
-
-  const handleCreate = async (body) => {
-    const data = await fetch(`${process.env.REACT_APP_API_URL}/pessoas`, {
-      method: "POST",
-      body,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    if (!data.ok) return false
     return true;
   };
 
   const getData = async (id) => {
     const data = await fetch(`${process.env.REACT_APP_API_URL}/pessoas/${id}`);
     if (!data.ok) return [];
+    setLoading(false);
     return await data.json();
+  };
+
+  const handleExcluir = (id) => {
+    const confirmAnswer = window.confirm(
+      `Tem certeza que deseja excluir o registro de ${nome}?`
+    );
+    if (!confirmAnswer) return;
+    const res = excluirRegistro(id);
+    if (res) {
+      return navigate("/");
+    } 
+  };
+
+  const excluirRegistro = async (id) => {
+    const data = await fetch(`${process.env.REACT_APP_API_URL}/pessoas/${id}`, {
+      method: "DELETE",
+    });
+    if (!data.ok) return alert("Erro inesperado.");
+    return true
   };
 
   useEffect(() => {
@@ -118,58 +109,85 @@ export default function PessoaForm({ id }) {
           new Date(data.data_admissao).toISOString().slice(0, 10)
         );
       });
+    } else {
+      setLoading(false);
     }
   }, []);
 
   return (
-    <Container>
-      <h1>{id == "new" ? "Criar novo" : "Editar"}</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="input-group">
-          <label>Nome:</label>
-          <input value={nome} onChange={(e) => setNome(e.target.value)} />
-        </div>
-        <div className="input-group">
-          <label>RG:</label>
-          <input
-            type="text"
-            maxLength={12}
-            value={rg}
-            onChange={(e) => setRg(e.target.value)}
-          />
-        </div>
-        <div className="input-group">
-          <label>CPF:</label>
-          <input
-            type="text"
-            maxLength={14}
-            value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
-          />
-        </div>
-        <div className="input-group">
-          <label>Data de nascimento:</label>
-          <input
-            type="date"
-            value={dataNascimento}
-            onChange={(e) => setDataNascimento(e.target.value)}
-          />
-        </div>
-        <div className="input-group">
-          <label>Data de admissão:</label>
-          <input
-            type="date"
-            value={dataAdmissao}
-            onChange={(e) => setDataAdmissao(e.target.value)}
-          />
-        </div>
+    <>
+      {loading && <Loading />}
+      <Container>
+        <h1>{id == "new" ? "Adicionar produto" : "Editar"}</h1>
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label>Nome:</label>
+            <input
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              required
+            />
+          </div>
+          <div className="input-group">
+            <label>RG:</label>
+            <input
+              type="text"
+              maxLength={12}
+              minLength={12}
+              value={rg}
+              onChange={(e) => setRg(e.target.value)}
+              required
+            />
+          </div>
+          <div className="input-group">
+            <label>CPF:</label>
+            <input
+              type="text"
+              maxLength={14}
+              minLength={14}
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value)}
+              required
+            />
+          </div>
+          <div className="input-group">
+            <label>Data de nascimento:</label>
+            <input
+              type="date"
+              value={dataNascimento}
+              onChange={(e) => setDataNascimento(e.target.value)}
+              required
+            />
+          </div>
+          <div className="input-group">
+            <label>Data de admissão:</label>
+            <input
+              type="date"
+              value={dataAdmissao}
+              onChange={(e) => setDataAdmissao(e.target.value)}
+              required
+            />
+          </div>
+          <div className="buttons">
+            {id == "new" && <button disabled={loading}>Criar</button>}
+            {id != "new" && (
+              <button type="submit" disabled={loading}>
+                Salvar
+              </button>
+            )}
+          </div>
+        </form>
         <div className="buttons">
-          <button disabled={loading}>{id == "new" ? "Criar" : "Salvar"}</button>
           <Link to="/">
             <button>Voltar</button>
           </Link>
+          {id != "new" && (
+            <button disabled={loading} onClick={() => handleExcluir(id)}>
+              Excluir
+            </button>
+          )}
         </div>
-      </form>
-    </Container>
+      </Container>
+    </>
   );
 }

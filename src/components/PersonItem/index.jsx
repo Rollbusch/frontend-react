@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-export default function PersonItem({ pessoa, reload, setReload }) {
+export default function PersonItem({ pessoa, loading, setLoading }) {
   const formatFirstName = (pessoa) => {
     return pessoa.split(" ")[0];
   };
@@ -18,18 +18,12 @@ export default function PersonItem({ pessoa, reload, setReload }) {
     );
     if (!confirmAnswer) return;
     excluirRegistro(id)
+    setLoading(true)
   };
 
   const excluirRegistro = async (id) => {
     const data = await fetch(`${process.env.REACT_APP_API_URL}/pessoas/${id}`, {
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json'
-        },
-        method: 'DELETE',
-        body: JSON.stringify({
-            id
-        })
+        method: 'DELETE'
     })
     if (!data.ok) return alert('Erro inesperado.')
     return alert('Registro apagado com sucesso!')
