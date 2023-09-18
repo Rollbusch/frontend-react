@@ -1,0 +1,47 @@
+* {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+main {
+  padding: 3rem 0;
+  margin: 3rem auto;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td {
+  text-align: center;
+  border-bottom: 1px solid;
+  padding: 0.5rem;
+}
+
+.container {
+  width: 768px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+tbody + a {
+  margin-top: 1rem;
+  display: block;
+  text-decoration: none;
+}
